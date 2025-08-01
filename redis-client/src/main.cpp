@@ -3,42 +3,68 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/ip.h>
+#include <winsock2.h>
 
+SOCKET clientSocket;
 
-static void die(const char *msg) {
-    int err = errno;
-    fprintf(stderr, "[%d] %s\n", err, msg);
-    abort();
+static void stop(const char* msg)
+{
+	int err = WSAGetLastError();
+	fprintf(stderr, "[%d] %s\n", err, msg);
+	exit(EXIT_FAILURE);
 }
 
-int main() {
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0) {
-        die("socket()");
-    }
+static void initializeWinsoc() 
+{
+    WSADATA wsaData;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0) 
+		stop("WSAStartup failed");
+}
 
-    struct sockaddr_in addr = {};
-    addr.sin_family = AF_INET;
-    addr.sin_port = ntohs(1234);
-    addr.sin_addr.s_addr = ntohl(INADDR_LOOPBACK);
-    int rv = connect(fd, (const struct sockaddr *)&addr, sizeof(addr));
-    if (rv) {
-        die("connect");
-    }
+static void initializeClientSocket()
+{
+	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (clientSocket == INVALID_SOCKET) 
+		stop("Could not initialize socket for client");
 
-    char msg[] = "hello";
-    write(fd, msg, strlen(msg));
+	struct sockaddr_in socketAddress = {};
+	socketAddress.sin_family = AF_INET;
+	socketAddress.sin_port = htons(1234);
+	socketAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    char rbuf[64] = {};
-    ssize_t n = read(fd, rbuf, sizeof(rbuf) - 1);
-    if (n < 0) {
-        die("read");
-    }
-    printf("server says: %s\n", rbuf);
-    close(fd);
+	int connectionStatus = connect(clientSocket, (const struct sockaddr*)&socketAddress, sizeof(socketAddress));
+	if (connectionStatus == SOCKET_ERROR) 
+		stop("Connection to the server failed");
+}
+
+static void sendMessage(const char* msg)
+{
+	int messageLength = (int)strlen(msg);
+	if (send(clientSocket, msg, messageLength, 0) == SOCKET_ERROR)
+		stop("Sending message to server failed");
+}
+
+static void receiveMessage()
+{
+	char message[64] = {};
+	int n = recv(clientSocket, message, sizeof(message) - 1, 0);
+
+	if (n == SOCKET_ERROR) 
+		stop("Receiving message from server failed");
+	
+	printf("Server says: %s\n", message);
+}
+
+int main() 
+{
+    initializeWinsoc();
+	initializeClientSocket();
+
+	sendMessage("hello");
+	receiveMessage();
+    
+    closesocket(clientSocket);
+    WSACleanup();
     return 0;
 }
