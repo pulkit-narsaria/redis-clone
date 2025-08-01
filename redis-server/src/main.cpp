@@ -196,4 +196,6 @@ int main()
 
     closesocket(serverSocket);
     WSACleanup();
+
+	return 0;
 }

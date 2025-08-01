@@ -83,7 +83,8 @@ static int32_t sendRequest(SOCKET clientSocket, const char* message)
 	memcpy(sendMessage, &len, 4);
 	memcpy(&sendMessage[4], message, len);
 
-	if (int32_t err = writeMessage(clientSocket, sendMessage, 4 + len))
+	int32_t err = writeMessage(clientSocket, sendMessage, 4 + len);
+	if (err)
 		return err;
 	return 0;
 }
@@ -145,13 +146,22 @@ static void sendQueries()
 	int32_t err;
 	err = query(clientSocket, "hello1");
 	if (err)
+	{
 		closesocket(clientSocket);
+		return;
+	}
 	err = query(clientSocket, "hello2");
 	if (err)
+	{
 		closesocket(clientSocket);
+		return;
+	}
 	err = query(clientSocket, "hello3");
 	if (err)
+	{
 		closesocket(clientSocket);
+		return;
+	}
 }
 
 int main() 
@@ -163,4 +173,6 @@ int main()
 	    
     closesocket(clientSocket);
     WSACleanup();
+
+	return 0;
 }
