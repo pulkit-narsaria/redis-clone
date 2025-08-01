@@ -19,7 +19,7 @@ static void dontStop(const char* msg)
 	fprintf(stderr, "%s\n", msg);
 }
 
-static void initializeWinsoc() 
+static void initializeWinsock() 
 {
     WSADATA wsaData;
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -53,19 +53,19 @@ static void initializeServerSocket()
 }
 
 static void processServerClientActions(SOCKET clientSocket) {
-	char recievedMessage[64] = {};
-	int recieveStatus = recv(clientSocket, recievedMessage, sizeof(recievedMessage) - 1, 0);
+	char receivedMessage[64] = {};
+	int receiveStatus = recv(clientSocket, receivedMessage, sizeof(receivedMessage) - 1, 0);
 
-	if (recieveStatus == SOCKET_ERROR) 
+	if (receiveStatus == SOCKET_ERROR) 
 	{
-		dontStop("Reciving from the client failed");
+		dontStop("Receiving from the client failed");
 		return;
 	}
 
-	fprintf(stderr, "Client says: %s\n", recievedMessage);
+	fprintf(stderr, "Client says: %s\n", receivedMessage);
 
 	char message[] = "world";
-	int sendStatus = send(clientSocket, message, sizeof(message), 0);
+	int sendStatus = send(clientSocket, message, strlen(message), 0);
 	if (sendStatus == SOCKET_ERROR)
 		dontStop("Sending to the client failed");
 }
@@ -89,7 +89,7 @@ static void connectToClient()
 }
 
 int main() {
-    initializeWinsoc();
+    initializeWinsock();
 	initializeServerSocket();
 
 	connectToClient();

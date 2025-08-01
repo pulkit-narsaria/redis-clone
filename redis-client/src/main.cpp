@@ -14,7 +14,7 @@ static void stop(const char* msg)
 	exit(EXIT_FAILURE);
 }
 
-static void initializeWinsoc() 
+static void initializeWinsock() 
 {
     WSADATA wsaData;
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -58,7 +58,7 @@ static void receiveMessage()
 
 int main() 
 {
-    initializeWinsoc();
+    initializeWinsock();
 	initializeClientSocket();
 
 	sendMessage("hello");
