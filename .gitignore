@@ -1,0 +1,15 @@
+﻿#
+# Root directories & files
+#
+
+**/.vs/**
+**/x64/**
+
+#
+# Nested directories & files
+#
+
+**/bin/**
+**/obj/**
+**/*.user
+**/doc/**
