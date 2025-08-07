@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +7,6 @@
 #include <winsock2.h>
 #include <vector>
 #include <string>
-#include <assert.h>
 
 SOCKET clientSocket;
 const size_t maxMessageSize = 32 << 20;
@@ -37,24 +37,24 @@ static void initializeClientSocket()
 	if (clientSocket == INVALID_SOCKET) 
 		stop("Could not initialize socket for client");
 
-	struct sockaddr_in socketAddress = {};
-	socketAddress.sin_family = AF_INET;
-	socketAddress.sin_port = htons(1234);
-	socketAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	struct sockaddr_in serverAddress = {};
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_port = htons(1234);
+	serverAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-	int connectionStatus = connect(clientSocket, (const struct sockaddr*)&socketAddress, sizeof(socketAddress));
+	int connectionStatus = connect(clientSocket, (const struct sockaddr*)&serverAddress, sizeof(serverAddress));
 	if (connectionStatus == SOCKET_ERROR) 
 		stop("Connection to the server failed");
 }
 
-static int32_t readMessage(SOCKET clientSocket, char* message, size_t messageLength)
+static int32_t readMessage(SOCKET clientSocket, char* message, int messageLength)
 {
 	while (messageLength > 0) 
 	{
 		size_t readSize = recv(clientSocket, message, messageLength, 0);
 		if (readSize <= 0) return -1;
 		assert((size_t)readSize <= messageLength);
-		messageLength -= (size_t)readSize;
+		messageLength -= readSize;
 		message += readSize;
 	}
 	return 0;
@@ -84,7 +84,7 @@ static int32_t sendRequest(SOCKET clientSocket, const char* message, size_t mess
 	sendMessage.insert(sendMessage.end(), (char*)&messageSize, (char*)&messageSize + 4);
 	sendMessage.insert(sendMessage.end(), message, message + messageSize);
 
-	return writeMessage(clientSocket, sendMessage.data(), sendMessage.size());
+	return writeMessage(clientSocket, sendMessage.data(), (int)sendMessage.size());
 }
 
 static int32_t getResponse(SOCKET clientSocket)
@@ -158,5 +158,6 @@ int main()
 	    
     closesocket(clientSocket);
     WSACleanup();
-    return 0;
+
+	return 0;
 }

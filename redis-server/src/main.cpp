@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +6,6 @@
 #include <errno.h>
 #include <winsock2.h>
 #include <vector>
-#include <assert.h>
 
 SOCKET serverSocket;
 const size_t maxMessageSize = 32 << 20;
@@ -76,7 +76,7 @@ static void initializeServerSocket()
 	socketAddress.sin_port = htons(1234);
 	socketAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	int bindStatus = bind(serverSocket, (const struct sockaddr*)&socketAddress, sizeof(socketAddress));
+	int bindStatus = bind(serverSocket, (const sockaddr*)&socketAddress, sizeof(socketAddress));
 	if (bindStatus == SOCKET_ERROR) 
 		stop("Binding to the socket failed");
 
@@ -284,7 +284,8 @@ static void handleClients()
 	}
 }
 
-int main() {
+int main() 
+{
     initializeWinsock();
 	initializeServerSocket();
 
@@ -292,5 +293,6 @@ int main() {
 
     closesocket(serverSocket);
     WSACleanup();
-    return 0;
+
+	return 0;
 }
